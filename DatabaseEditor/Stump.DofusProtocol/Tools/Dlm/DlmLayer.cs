@@ -1,19 +1,3 @@
-﻿#region License GNU GPL
-// DlmLayer.cs
-// 
-// Copyright (C) 2012 - BehaviorIsManaged
-// 
-// This program is free software; you can redistribute it and/or modify it 
-// under the terms of the GNU General Public License as published by the Free Software Foundation;
-// either version 2 of the License, or (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-// without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
-// See the GNU General Public License for more details. 
-// You should have received a copy of the GNU General Public License along with this program; 
-// if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-#endregion
-
 using Stump.Core.IO;
 
 namespace Stump.DofusProtocol.D2oClasses.Tools.Dlm
@@ -25,35 +9,24 @@ namespace Stump.DofusProtocol.D2oClasses.Tools.Dlm
             Map = map;
         }
 
-        public DlmMap Map
-        {
-            get;
-            set;
-        }
-        public int LayerId
-        {
-            get;
-            set;
-        }
+        public DlmCell[] Cells { get; set; }
 
-        public DlmCell[] Cells
-        {
-            get;
-            set;
-        }
+        public int LayerId { get; set; }
+
+        public DlmMap Map { get; set; }
 
         public static DlmLayer ReadFromStream(DlmMap map, IDataReader reader)
         {
-            var layer = new DlmLayer(map);
-
-            layer.LayerId = map.Version >= 9 ? reader.ReadByte() : reader.ReadInt();
-            layer.Cells = new DlmCell[reader.ReadShort()];
-            for (int i = 0; i < layer.Cells.Length; i++)
+            var dlmLayer = new DlmLayer(map)
             {
-                layer.Cells[i] = DlmCell.ReadFromStream(layer, reader);
+                LayerId = reader.ReadInt(),
+                Cells = new DlmCell[reader.ReadShort()]
+            };
+            for (var i = 0; i < dlmLayer.Cells.Length; i++)
+            {
+                dlmLayer.Cells[i] = DlmCell.ReadFromStream(dlmLayer, reader);
             }
-
-            return layer;
+            return dlmLayer;
         }
     }
 }

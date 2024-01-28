@@ -1,19 +1,3 @@
-﻿#region License GNU GPL
-// DlmCell.cs
-// 
-// Copyright (C) 2012 - BehaviorIsManaged
-// 
-// This program is free software; you can redistribute it and/or modify it 
-// under the terms of the GNU General Public License as published by the Free Software Foundation;
-// either version 2 of the License, or (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-// without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
-// See the GNU General Public License for more details. 
-// You should have received a copy of the GNU General Public License along with this program; 
-// if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-#endregion
-
 using Stump.Core.IO;
 
 namespace Stump.DofusProtocol.D2oClasses.Tools.Dlm
@@ -25,41 +9,25 @@ namespace Stump.DofusProtocol.D2oClasses.Tools.Dlm
             Layer = layer;
         }
 
-        private DlmLayer m_layer;
+        public DlmBasicElement[] Elements { get; set; }
 
-        public DlmLayer Layer
-        {
-            get { return m_layer; }
-            set { m_layer = value; }
-        }
+        public short Id { get; set; }
 
-        public short Id
-        {
-            get;
-            set;
-        }
-
-        public DlmBasicElement[] Elements
-        {
-            get;
-            set;
-        }
+        public DlmLayer Layer { get; set; }
 
         public static DlmCell ReadFromStream(DlmLayer layer, IDataReader reader)
         {
-            var cell = new DlmCell(layer);
-
-            cell.Id = reader.ReadShort();
-            cell.Elements = new DlmBasicElement[reader.ReadShort()];
-
-            for (int i = 0; i < cell.Elements.Length; i++)
+            var dlmCell = new DlmCell(layer)
             {
-                DlmBasicElement element =
-                    DlmBasicElement.ReadFromStream(cell, reader);
-                cell.Elements[i] = element;
+                Id = reader.ReadShort(),
+                Elements = new DlmBasicElement[reader.ReadShort()]
+            };
+            for (var i = 0; i < dlmCell.Elements.Length; i++)
+            {
+                var dlmBasicElement = DlmBasicElement.ReadFromStream(dlmCell, reader);
+                dlmCell.Elements[i] = dlmBasicElement;
             }
-
-            return cell;
+            return dlmCell;
         }
     }
 }

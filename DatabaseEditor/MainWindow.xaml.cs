@@ -1,9 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Stump.Core.Reflection;
+using Stump.DofusProtocol.Classes;
+using IDataObject = Stump.DofusProtocol.Classes.IDataObject;
 
 namespace DatabaseEditor
 {
@@ -14,7 +19,7 @@ namespace DatabaseEditor
     {
         private bool isDragging = false;
         private Point startPoint;
-
+        private readonly Dictionary<Type, List<Type>> m_subTypes = new Dictionary<Type, List<Type>>();
         public MainWindow()
         {
             InitializeComponent();
@@ -49,7 +54,43 @@ namespace DatabaseEditor
             isDragging = false;
             DraggableElement.ReleaseMouseCapture();
         }
+        private void FindSubClasses()
+        {
+            var types = typeof(AbuseReasons).Assembly.GetTypes();
+            for (var i = 0; i < types.Length; i++)
+            {
+                var type = types[i];
+                if (type.HasInterface(typeof(IDataObject)))
+                {
+                    if (type.BaseType != typeof(object))
+                    {
+                        var baseType = type.BaseType;
+                        while (baseType.BaseType != typeof(object))
+                        {
+                            baseType = baseType.BaseType;
+                        }
+                        if (!m_subTypes.ContainsKey(baseType))
+                        {
+                            m_subTypes.Add(baseType, new List<Type>());
+                        }
+                        m_subTypes[baseType].Add(type);
+                    }
+                }
+            }
+        }
 
+        private void ShowFirstSubtypeName()
+        {
+            foreach (var kvp in m_subTypes)
+            {
+                if (kvp.Value.Any())
+                {
+                    var firstSubtypeName = kvp.Value.Last().Name;
+                    MessageBox.Show("First Subtype Name: " + firstSubtypeName);
+                    return; // Exit method after displaying the first subtype name
+                }
+            }
+        }
         private void DropTarget_Drop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -59,14 +100,27 @@ namespace DatabaseEditor
                 {
                     if (Path.GetExtension(file).ToLower() == ".d2o")
                     {
-                        MessageBox.Show("File dropped: " + file + " (It's a .d2o file)", "File Information", MessageBoxButton.OK, MessageBoxImage.Information);
+                        try
+                        {
+                            using (FileStream stream = new FileStream(file, FileMode.Open, FileAccess.ReadWrite))
+                            {
+                                D2OEditor window = new D2OEditor(stream);
+                                window.WindowStartupLocation = WindowStartupLocation.Manual;
+                                window.Show();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"Error opening file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
                     }
                     else
                     {
-                        MessageBox.Show("File dropped: " + file + " (Not a .d2o file)", "File Information", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        MessageBox.Show($"File dropped: {file} (Not a .d2o file)", "File Information", MessageBoxButton.OK, MessageBoxImage.Warning);
                     }
                 }
             }
         }
+           
     }
 }

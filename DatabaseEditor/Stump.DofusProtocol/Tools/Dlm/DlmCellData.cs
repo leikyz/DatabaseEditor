@@ -1,172 +1,113 @@
-﻿#region License GNU GPL
-
-// DlmCellData.cs
-// 
-// Copyright (C) 2012 - BehaviorIsManaged
-// 
-// This program is free software; you can redistribute it and/or modify it 
-// under the terms of the GNU General Public License as published by the Free Software Foundation;
-// either version 2 of the License, or (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-// without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
-// See the GNU General Public License for more details. 
-// You should have received a copy of the GNU General Public License along with this program; 
-// if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-
-#endregion
-
-using System;
 using Stump.Core.IO;
-using Stump.Core.Mathematics;
 
 namespace Stump.DofusProtocol.D2oClasses.Tools.Dlm
 {
     public struct DlmCellData
     {
         private short? m_floor;
-        private short m_id;
 
-        private short m_data;
-
-        private byte m_mapChangeData;
-        private byte m_moveZone;
         private sbyte m_rawFloor;
-        private byte m_speed;
+
+        public bool Blue
+        {
+            get { return (LosMov & 16) >> 4 == 1; }
+        }
+
+        public bool FarmCell
+        {
+            get { return (LosMov & 32) >> 5 == 1; }
+        }
+
+        public short Floor
+        {
+            get
+            {
+                short valueOrDefault;
+                var mFloor = m_floor;
+                if (mFloor.HasValue)
+                {
+                    valueOrDefault = mFloor.GetValueOrDefault();
+                }
+                else
+                {
+                    short? nullable = (short) (m_rawFloor*10);
+                    var nullable1 = nullable;
+                    m_floor = nullable;
+                    valueOrDefault = nullable1.Value;
+                }
+                return valueOrDefault;
+            }
+        }
+
+        public short Id { get; set; }
+
+        public bool Los
+        {
+            get { return (LosMov & 2) >> 1 == 1; }
+        }
+
+        public byte LosMov { get; set; }
+
+        public byte MapChangeData { get; set; }
+
+        public bool Mov
+        {
+            get { return (LosMov & 1) != 1 || NonWalkableDuringFight ? false : !FarmCell; }
+        }
+
+        public byte MoveZone { get; set; }
+
+        public bool NonWalkableDuringFight
+        {
+            get { return (LosMov & 4) >> 2 == 1; }
+        }
+
+        public bool Red
+        {
+            get { return (LosMov & 8) >> 3 == 1; }
+        }
+
+        public byte Speed { get; set; }
+
+        public bool Visible
+        {
+            get { return (LosMov & 64) >> 6 == 1; }
+        }
 
         public DlmCellData(short id)
         {
-            m_id = id;
-            m_data = 3;
+            Id = id;
+            LosMov = 3;
             m_rawFloor = 0;
             m_floor = 0;
-            m_speed = 0;
-            m_mapChangeData = 0;
-            m_moveZone = 0;
+            Speed = 0;
+            MapChangeData = 0;
+            MoveZone = 0;
         }
 
-        public short Floor => m_floor ?? (m_floor = (short) (m_rawFloor*10)).Value;
-
-        public bool Mov => (m_data & 1) != 0 && !NonWalkableDuringFight && !FarmCell;
-
-        public bool NonWalkableDuringFight => (m_data & 2) != 0;
-
-        public bool NonWalkableDuringRP => (m_data & 4) != 0;
-
-        public bool Los => (m_data & 8) != 0;
-
-        public bool Blue => (m_data & 16) != 0;
-
-        public bool Red => (m_data & 32) != 0;
-
-        public bool FarmCell => (m_data & 64) != 0;
-
-        public bool Visible => (m_data & 128) != 0;
-
-        public bool HavenbagCell => (m_data & 256) != 0;
-
-
-        public short Id
-        {
-            get { return m_id; }
-            set { m_id = value; }
-        }
-
-        public byte MapChangeData
-        {
-            get { return m_mapChangeData; }
-            set { m_mapChangeData = value; }
-        }
-
-        public byte MoveZone
-        {
-            get { return m_moveZone; }
-            set { m_moveZone = value; }
-        }
-
-        public byte Speed
-        {
-            get { return m_speed; }
-            set { m_speed = value; }
-        }
-
-        public short Data
-        {
-            get { return m_data; }
-            set { m_data = value; }
-        }
-        
-
-        public bool UseTopArrow
-        {
-            get { return (m_data & 512) != 0; }
-        }
-
-        public bool UseBottomArrow
-        {
-            get { return (m_data & 1024) != 0; }
-        }   
-     
-        public bool UseRightArrow
-        {
-            get { return (m_data & 2048) != 0; }
-        }     
-   
-        public bool UseLeftArrow
-        {
-            get { return (m_data & 4096) != 0; }
-        }
         public static DlmCellData ReadFromStream(short id, byte version, IDataReader reader)
         {
-            var cell = new DlmCellData(id);
-
-            cell.m_rawFloor = reader.ReadSByte();
-
-            if (cell.m_rawFloor == -128)
+            DlmCellData dlmCellDatum;
+            var dlmCellDatum1 = new DlmCellData(id)
             {
-                return cell;
-            }
-
-            if (version >= 9)
+                m_rawFloor = reader.ReadSByte()
+            };
+            if (dlmCellDatum1.m_rawFloor != -128)
             {
-                var data = reader.ReadShort();
-                // invert first bit
-                data = data.FlipBit(0);
-                data = data.FlipBit(3);
-
-                if (version < 10)
+                dlmCellDatum1.LosMov = reader.ReadByte();
+                dlmCellDatum1.Speed = reader.ReadByte();
+                dlmCellDatum1.MapChangeData = reader.ReadByte();
+                if (version > 5)
                 {
-                    // havenbag bit (8th) not used
-                    data = data.ShiftBitsLeft(8, 1);
+                    dlmCellDatum1.MoveZone = reader.ReadByte();
                 }
-                
-                cell.m_data = data;
+                dlmCellDatum = dlmCellDatum1;
             }
             else
             {
-                var data = reader.ReadByte();
-                data = data.ShiftBitsLeft(1, 1);
-                data = data.SwapBits(7, 1);
-                data = data.SwapBits(2, 3);
-                data = data.SwapBits(4, 5);
-
-                cell.m_data = data;
+                dlmCellDatum = dlmCellDatum1;
             }
-
-            cell.m_speed = reader.ReadByte();
-            cell.m_mapChangeData = reader.ReadByte();
-
-            if (version > 5)
-            {
-                cell.m_moveZone = reader.ReadByte();
-            }
-
-            if (version > 7 && version < 9)
-            {
-                cell.m_data |= (byte)(0xF & reader.ReadByte() << 9);
-            }
-
-            return cell;
+            return dlmCellDatum;
         }
     }
 }

@@ -8,7 +8,6 @@ namespace Stump.DofusProtocol.Tools.D2o
         {
             Name = name;
             AutoBuild = autoBuild;
-            
         }
 
         public D2OClassAttribute(string name, string packageName, bool autoBuild = true)

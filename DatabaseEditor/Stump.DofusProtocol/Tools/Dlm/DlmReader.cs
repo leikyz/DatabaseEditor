@@ -1,19 +1,3 @@
-﻿#region License GNU GPL
-// DlmReader.cs
-// 
-// Copyright (C) 2012 - BehaviorIsManaged
-// 
-// This program is free software; you can redistribute it and/or modify it 
-// under the terms of the GNU General Public License as published by the Free Software Foundation;
-// either version 2 of the License, or (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-// without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
-// See the GNU General Public License for more details. 
-// You should have received a copy of the GNU General Public License along with this program; 
-// if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-#endregion
-
 using System;
 using System.IO;
 using Stump.Core.IO;
@@ -21,14 +5,7 @@ using Stump.Core.IO;
 namespace Stump.DofusProtocol.D2oClasses.Tools.Dlm
 {
     public class DlmReader : IDisposable
-    {        
-        public const int VERSION = 10;
-
-        /// <summary>
-        /// Returns the decryption key
-        /// </summary>
-        /// <param name="mapId">The map to decrypt</param>
-        /// <returns>The decryption key</returns>
+    {
         public delegate string KeyProvider(int mapId);
 
         private IDataReader m_reader;
@@ -54,67 +31,44 @@ namespace Stump.DofusProtocol.D2oClasses.Tools.Dlm
             m_reader = new BigEndianReader(stream);
         }
 
-        public DlmReader(Stream stream, string decryptionKey)
-        {
-            m_reader = new BigEndianReader(stream);
-            DecryptionKey = decryptionKey;
-        }
-
         public DlmReader(byte[] buffer)
         {
             m_reader = new FastBigEndianReader(buffer);
         }
 
-        public string DecryptionKey
-        {
-            get;
-            set;
-        }
+        public string DecryptionKey { get; set; }
 
-        public KeyProvider DecryptionKeyProvider
+        public KeyProvider DecryptionKeyProvider { get; set; }
+
+        public void Dispose()
         {
-            get;
-            set;
+            m_reader.Dispose();
         }
 
         public DlmMap ReadMap()
         {
             m_reader.Seek(0, SeekOrigin.Begin);
-            int header = m_reader.ReadByte();
-
-            if (header != 77)
+            if (m_reader.ReadByte() != 77)
             {
                 try
                 {
                     m_reader.Seek(0, SeekOrigin.Begin);
-                    var output = new MemoryStream();
-                    ZipHelper.Deflate(new MemoryStream(m_reader.ReadBytes((int) m_reader.BytesAvailable)), output);
-
-                    var uncompress = output.ToArray();
-
+                    var memoryStream = new MemoryStream();
+                    ZipHelper.Deflate(new MemoryStream(m_reader.ReadBytes((int) m_reader.BytesAvailable)), memoryStream);
+                    var array = memoryStream.ToArray();
                     m_reader.Dispose();
-                    m_reader = new FastBigEndianReader(uncompress);
-
-                    header = m_reader.ReadByte();
-
-                    if (header != 77)
+                    m_reader = new FastBigEndianReader(array);
+                    if (m_reader.ReadByte() != 77)
+                    {
                         throw new FileLoadException("Wrong header file");
-
+                    }
                 }
-                catch (Exception ex)
+                catch (Exception exception)
                 {
                     throw new FileLoadException("Wrong header file");
                 }
             }
-
-            var map = DlmMap.ReadFromStream(m_reader, this);
-
-            return map;
-        }
-
-        public void Dispose()
-        {
-            m_reader.Dispose();
+            return DlmMap.ReadFromStream(m_reader, this);
         }
     }
 }

@@ -22,4 +22,14 @@
     <Page Remove="Stump.ORM\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="Stump.Core\Stump.Core.csproj" />
+    <ProjectReference Include="Stump.DofusProtocol\Stump.DofusProtocol.csproj" />
+    <ProjectReference Include="Stump.ORM\Stump.ORM.csproj" />
+  </ItemGroup>
+
 </Project>

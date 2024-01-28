@@ -1,19 +1,3 @@
-﻿#region License GNU GPL
-// DlmFixture.cs
-// 
-// Copyright (C) 2012 - BehaviorIsManaged
-// 
-// This program is free software; you can redistribute it and/or modify it 
-// under the terms of the GNU General Public License as published by the Free Software Foundation;
-// either version 2 of the License, or (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-// without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
-// See the GNU General Public License for more details. 
-// You should have received a copy of the GNU General Public License along with this program; 
-// if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-#endregion
-
 using Stump.Core.IO;
 
 namespace Stump.DofusProtocol.D2oClasses.Tools.Dlm
@@ -25,67 +9,35 @@ namespace Stump.DofusProtocol.D2oClasses.Tools.Dlm
             Map = map;
         }
 
-        public DlmMap Map
-        {
-            get;
-            set;
-        }
+        public byte Alpha { get; set; }
 
-        public int FixtureId
-        {
-            get;
-            private set;
-        }
+        public int FixtureId { get; private set; }
 
-        public System.Drawing.Point Offset
-        {
-            get;
-            set;
-        }
+        public int Hue { get; set; }
 
-        public short Rotation
-        {
-            get;
-            set;
-        }
+        public DlmMap Map { get; set; }
 
-        public short ScaleX
-        {
-            get;
-            set;
-        }
+        public System.Drawing.Point Offset { get; set; }
 
-        public short ScaleY
-        {
-            get;
-            set;
-        }
+        public short Rotation { get; set; }
 
-        public int Hue
-        {
-            get;
-            set;
-        }
+        public short ScaleX { get; set; }
 
-        public byte Alpha
-        {
-            get;
-            set;
-        }
+        public short ScaleY { get; set; }
 
         public static DlmFixture ReadFromStream(DlmMap map, IDataReader reader)
         {
-            var fixture = new DlmFixture(map);
-
-            fixture.FixtureId = reader.ReadInt();
-            fixture.Offset = new System.Drawing.Point(reader.ReadShort(), reader.ReadShort());
-            fixture.Rotation = reader.ReadShort();
-            fixture.ScaleX = reader.ReadShort();
-            fixture.ScaleY = reader.ReadShort();
-            fixture.Hue = reader.ReadByte() << 16 | reader.ReadByte() << 8 | reader.ReadByte();
-            fixture.Alpha = reader.ReadByte();
-
-            return fixture;
+            var dlmFixture = new DlmFixture(map)
+            {
+                FixtureId = reader.ReadInt(),
+                Offset = new System.Drawing.Point(reader.ReadShort(), reader.ReadShort()),
+                Rotation = reader.ReadShort(),
+                ScaleX = reader.ReadShort(),
+                ScaleY = reader.ReadShort(),
+                Hue = reader.ReadByte() << 16 | reader.ReadByte() << 8 | reader.ReadByte(),
+                Alpha = reader.ReadByte()
+            };
+            return dlmFixture;
         }
     }
 }
