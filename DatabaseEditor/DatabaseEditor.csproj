@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Stump.Core\**" />
+    <Compile Remove="Stump.DofusProtocol\**" />
+    <Compile Remove="Stump.ORM\**" />
+    <EmbeddedResource Remove="Stump.Core\**" />
+    <EmbeddedResource Remove="Stump.DofusProtocol\**" />
+    <EmbeddedResource Remove="Stump.ORM\**" />
+    <None Remove="Stump.Core\**" />
+    <None Remove="Stump.DofusProtocol\**" />
+    <None Remove="Stump.ORM\**" />
+    <Page Remove="Stump.Core\**" />
+    <Page Remove="Stump.DofusProtocol\**" />
+    <Page Remove="Stump.ORM\**" />
+  </ItemGroup>
+
+</Project>

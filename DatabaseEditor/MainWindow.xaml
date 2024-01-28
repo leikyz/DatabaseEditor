@@ -1,0 +1,25 @@
+﻿<Window x:Class="DatabaseEditor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DatabaseEditor"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Border x:Name="DraggableElement" Background="LightBlue"
+                AllowDrop="True"
+                MouseLeftButtonDown="DraggableElement_MouseLeftButtonDown"
+                MouseMove="DraggableElement_MouseMove"
+                MouseLeftButtonUp="DraggableElement_MouseLeftButtonUp">
+            <TextBlock Text="Drag me!" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
+
+        <!-- Define drop target -->
+        <Border x:Name="DropTarget" Background="BlueViolet"
+                AllowDrop="True"
+                Drop="DropTarget_Drop" Width="NaN">
+            <TextBlock Text="Drop here!" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
+    </Grid>
+</Window>
